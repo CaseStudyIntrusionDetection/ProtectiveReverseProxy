@@ -1,0 +1,13 @@
+version: "2"
+
+services:
+  protection_proxy:
+    restart: unless-stopped
+    build: .
+    container_name: protection_proxy
+    #volumes:
+    #  - "./my-ssl.key:/etc/ssl/private/self_sslkey.pem:ro"
+    #  - "./my-ssl.pem:/etc/ssl/certs/self_sslcert.pem:ro"
+    ports:
+      - "80:80"
+      - "443:443"
