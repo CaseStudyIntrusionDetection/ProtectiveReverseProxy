@@ -11,7 +11,7 @@ COPY --chown=www-data:www-data ./proxy/*.py ./proxy/
 COPY --chown=www-data:www-data ./protection/ ./protection/
 
 # nginx settings and startup
-COPY ./proxy/supervisor.conf /etc/supervisor/conf.d/supervisord.conf 
+COPY ./proxy/supervisor.conf /etc/supervisor/supervisord.conf 
 COPY ./proxy/nginx.conf /etc/nginx
 COPY ./proxy/proxy.conf /etc/nginx/sites-enabled/default
 
@@ -23,4 +23,4 @@ EXPOSE 80/tcp
 EXPOSE 443/tcp
 
 # run nginx and python flask
-ENTRYPOINT ["/usr/bin/supervisord"]
+ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
