@@ -4,6 +4,7 @@ services:
   protection_proxy:
     restart: unless-stopped
     build: .
+    #image: todo
     container_name: protection_proxy
     #volumes:
     #  - "./my-ssl.key:/etc/ssl/private/self_sslkey.pem:ro"
