@@ -5,91 +5,63 @@ import re
 
 class RequestData():
 
-	def __init__(self, request):
+	current_id = 0
 
-		print(vars(request))
+	def __init__(self, request, connection_id):
+		self.id = RequestData.current_id
+		RequestData.current_id += 1
 
-		return
+		self.connection_id = connection_id
 
-		if request.method == 'POST':
-			post_data = request.post()
-			data['post_data'] = dict(post_data)
+		self.url = str(request.full_path)
+		self.protocol = str(request.environ['SERVER_PROTOCOL'])
+		self.remote_ip = str(request.environ['REMOTE_ADDR'])
+
+		self.method = str(request.method)
+		self.header_dict = dict(request.headers)
+		self.time = int(time.time())
+
+		if self.method == "POST":
+			self.body = {}
+			for name, value in request.form.items():
+				self.body[str(name)] = str(value)
 		else:
-			post_data = ""
-		
-		remote_ip, _ = request.transport.get_extra_info('peername')
+			self.body = ""
 
-		self.log(request.method, request.rel_url, request.version, request.headers, content,
-			post_data, headers, remote_ip, status_code)
+		self.clear_session_cookie(self.header_dict)
 
-	def log(self, method, uri, protocol, header, response_body, emulator, request_body, response_header, remote_ip, status_code):
-		"""Logs a request.
+	def print(self):
+		print(self.json())
 
-			Args:
-				method (str): The request method (GET, POST, ...).
-				uri (str): The requested URI.
-				protocol (HttpVersion): The HTTP protocol version.
-				header (dict): The HTTP headers.
-				response_body (str): The body of the response.
-				emulator (str): The emulator used by Tanner.
-				request_body (dict): The body of the request (e.g. for POST requests).
-				response_header (dict): The headers of the response.
-				cur_sess_id (str): The id of the current session.
-				prev_sess_id (str): The id of the previous session.
-				remote_ip (str): The ip address of the remote party that sent the request.
-				status_code (str): The status code of the response.
-		"""
+	def json(self):
+		return json.dumps(self.create_dict(), indent=2, sort_keys=False)
 
-		uri_str = str(uri)
-
-		protocol_str = 'HTTP/' + str(protocol.major) + '.' + str(protocol.minor)
-
-		header_dict = {}
-		for name, value in header.items():
-			header_dict[name] = value
-		self.clearSessionCookie(header_dict)
-
-		response_header_dict = {}
-		for name, value in response_header.items():
-			response_header_dict[name] = value
-		self.clearSessionCookie(response_header_dict)
-
-		response_body_str = str(response_body)
-
-		if request_body != "":
-			request_body_dict = {}
-			for name, value in request_body.items():
-				request_body_dict[name] = value
-		else:
-			request_body_dict = ""
-
-		logentry = {
-			"id" : 0,
-			"timestamp" : int(time.time()),
-			"connection-id" : 0,
+	def create_dict(self):
+		return {
+			"id" : self.id,
+			"timestamp" : self.time,
+			"connection-id" : self.connection_id,
 			"request" : {
-				"method": method,
-				"uri": uri_str,
-				"protocol": protocol_str,
-				"body": request_body_dict
+				"method": self.method,
+				"uri": self.url,
+				"protocol": self.protocol,
+				"body": self.body
 			},
-			"header" : header_dict,
+			"header" : self.header_dict,
 			"sender" : {
-				"ip" : remote_ip
+				"ip" : self.remote_ip
 			},
 			"honeypot" : {
-				"used-emulator" : emulator,
-				"response-hash" : hashlib.sha512(response_body_str.encode('utf-8')).hexdigest(),
-				"response-size" : len(response_body_str),
-				"response-status-code" : status_code , 
-				"response-header" : response_header_dict
+				"used-emulator" : "",
+				"response-hash" : "",
+				"response-size" : 0,
+				"response-status-code" : "", 
+				"response-header" : {}
 			}
 		}
 
-		print(json.dumps(logentry, indent=4, sort_keys=False))
-
-	def clearSessionCookie(self, header):
-		"""Removes the Tanner session cookie from a given HTTP header.
+	def clear_session_cookie(self, header):
+		"""Removes the systems session cookie from a given HTTP header.
 
 			Args:
 				header (dict): Dictionary containing the HTTP headers.
@@ -101,6 +73,6 @@ class RequestData():
 			field = 'Cookie'
 
 		if field != '': # remove tanner session cookie
-			header[field] = re.sub(r'sess_uuid=[0-9a-f\-]+(; )?', '', header[field] )
+			header[field] = re.sub(r'protection_session=[0-9A-Za-z\_\.\-]+(; )?', '', header[field] )
 			if header[field] == '':
 				del header[field]
