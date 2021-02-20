@@ -3,8 +3,7 @@ version: "2"
 services:
   protection_proxy:
     restart: unless-stopped
-    build: .
-    #image: todo
+    image: casestudyintrusiondetection/protective_reverse_proxy:development
     container_name: protection_proxy
     #volumes:
     #  - "./my-ssl.key:/etc/ssl/private/self_sslkey.pem:ro"
