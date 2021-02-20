@@ -12,3 +12,26 @@ services:
     ports:
       - "80:80"
       - "443:443"
+  system_to_protect:
+    container_name: system_to_protect
+    restart: unless-stopped
+    image: kimbtechnologies/kimb_forms_project:latest
+    environment:
+      - CONF_site_hosturl=
+      - CONF_site_pagename=KIMB-Forms-Project
+      - CONF_site_footercontent=Dummy to protect
+      - CONF_captcha_poll=false
+      - CONF_captcha_new=false
+      - CONF_texts_enablePoll=false
+      - CONF_texts_enableNew=true
+      - CONF_texts_textPoll=Ich bin mit den Datenschutzrichtlinien ... einverstanden!
+      - CONF_texts_textNew=Ich bin mit den AGB des Anbieters einverstanden!
+      - CONF_cookiebanner=false
+      - CONF_newpollmailto=test@example.com # admin mail, get mail when a poll is created
+      - CONF_submissions_enabled=false # query for poll submissions by mail
+      - CONF_submissions_captcha=true # query needs captcha
+      - CONF_submissions_mailValidate=^\S+@\S+\.\S+$$ # query mail address validation
+      - SMTP_SERVER= # the mail server host (used for admin notification mails)
+      - SMTP_PORT= # the port to deliver mails (587 for starttls or 465 for tls)
+      - SMTP_USER= # the username for the mail server
+      - SMTP_PASS= # the password for the mail server
