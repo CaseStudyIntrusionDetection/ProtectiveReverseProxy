@@ -1,0 +1,12 @@
+# dependecies packages
+scipy
+pandas
+numpy
+scikit-learn==0.24.0
+gensim
+tensorflow
+tensorflow-text
+tensorflow_addons
+
+# our main package 
+-e .

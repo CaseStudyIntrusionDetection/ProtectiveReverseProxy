@@ -1,3 +1,5 @@
+#import src.data.make_datasets_lda as lda_data
+
 class RequestChecker():
 
 	def __init__(self):
@@ -13,4 +15,3 @@ class RequestChecker():
 
 		return True 
 		# Here we have to connect to the TM and NN an check by the given data!
-			

@@ -1,12 +1,18 @@
 FROM python:3.8
 
+ENV PRP_VERSION=0.0.0
+
 # install packages for proxy
 RUN apt-get update && apt-get install -y nginx supervisor \
 	&& pip3.8 install flask flup \
 	&& mkdir /proxy/ && chown www-data:www-data /proxy/ \
 	&& mkdir /protection/ && chown www-data:www-data /protection/ 
 
-# code folders
+# install the protection system
+COPY --chown=www-data:www-data ./protection/requirements.txt ./protection/setup.py ./protection/
+RUN cd /protection/ && pip3.8 install -r requirements.txt && chown -R www-data:www-data /protection/
+
+# copy code folders
 COPY --chown=www-data:www-data ./proxy/ ./proxy/
 COPY --chown=www-data:www-data ./protection/ ./protection/
 
