@@ -362,7 +362,7 @@ def create_eval_dict(test_df, label_column, oe, model):
     """
     eval_ds = df_to_dataset(test_df, label_column, batch_size=128, shuffle=False)
     y_true = np.concatenate([y for x,y in eval_ds])
-    y_pred =  tf.argmax(model.predict(eval_ds), axis=1)
+    y_pred = tf.argmax(model.predict(eval_ds), axis=1)
 
     from sklearn.metrics import classification_report
     eval_dict = classification_report(y_true, y_pred, 
