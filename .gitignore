@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+./my-ssl.key
+./my-ssl.pem
 .DS_Store
 
 # C extensions

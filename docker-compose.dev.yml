@@ -8,6 +8,9 @@ services:
     volumes:
       - ./proxy/:/proxy/
       - ./protection/:/protection/
+      - ./models/dummy:/protection/model/:ro
+    environment: 
+      - BLOCK_CRAWLING=true
     ports:
       - "80:80"
       - "443:443"

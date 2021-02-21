@@ -1,0 +1,10 @@
+{
+	"name" : "Dummy Model",
+	"lda" : {
+		"topicmodel" : "lda-dummy.model",
+		"dictionary" : "lda.dict",
+		"distribution" : "lda-trained.json"
+	},
+	"nn" : {
+	}
+}

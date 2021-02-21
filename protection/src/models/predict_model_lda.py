@@ -1,170 +1,100 @@
 import gensim 
 import json
-import time
+import time, os
 
-from src.features.build_features_lda import build_bow_dict
+from src.data.make_datasets_lda import get_text_from_request
 
-def transform_topics_for_hellinger(*topics):
-	"""Brings the topic distributions into a format that can be used to compute the
-	Helldinger distance.
+class LDAPredictor():
 
-	Args:
-		*topics (dict): The topic distributions which should be converted.
+	BLOCK_CRAWLING = os.environ.get("BLOCK_CRAWLING") == "true"
 
-	Returns:
-		(dict): A dictionary containing the probability distributions for each topic
-		in a format usable with gensim.hellinger.
-	"""
+	def __init__(self, index, models_dir):
+		self.load_model(
+			models_dir + index["topicmodel"],
+			models_dir + index["dictionary"],
+			models_dir + index["distribution"]
+		)
 
-	# extract known distributions of types and emulators in a format that can be used with gensim.hellinger
-	result = {}
-	for topic in topics:
-		for dist in topic.keys():
-			result[dist] = []
-			for tid,prob in enumerate(topic[dist], start=0):
-				result[dist].append([tid,prob])
+	def load_model(self, tm_path, dict_path, dist_path):
+		"""Loads the LDA model which should be used for prediction (testing).
 
-	return result
+		Args:
+			settings (dict): The settings object for all kinds of parameters.
 
-def load_model(settings):
-	"""Loads the LDA model which should be used for prediction (testing).
+		Returns:
+			(array of dict, numpy.ndarray, dict): The bag of words corpus; the LDA model
+			and the probability distributions of the topics.
+		"""
 
-	Args:
-		settings (dict): The settings object for all kinds of parameters.
+		# load corpus (as bow) and dictionary
+		trained_topics = json.load(open(dist_path, 'r'))
+		self.trained_dists = self.transform_topics_for_hellinger(
+			trained_topics['requestTopics']['types'],
+			trained_topics['requestTopics']['emulators'], 
+			trained_topics['requestTopics']['zap-ids']
+		)
 
-	Returns:
-		(array of dict, numpy.ndarray, dict): The bag of words corpus; the LDA model
-		and the probability distributions of the topics.
-	"""
+		self.dict = gensim.corpora.Dictionary.load(dict_path)
+		self.model = gensim.models.ldamodel.LdaModel.load( tm_path )
 
-	# load corpus (as bow) and dictionary
-	corpus = json.load(open(settings['output']['dir'] + 'temp/' + settings['output']['name'] + '_bow.json', 'r'))
-	trainedTopics = json.load(open(settings['output']['dir'] + 'lda_trained/' + settings['output']['name'] + '_trained.json', 'r'))
-	dict = gensim.corpora.Dictionary.load(settings['output']['dir'] + 'temp/' + settings['output']['name'] + '.dict')
-	model = gensim.models.ldamodel.LdaModel.load( settings['output']['dir'] + 'temp/' + settings['output']['name'] + '.ldamodel' )
 
-	return corpus, model, dict, \
-		transform_topics_for_hellinger(trainedTopics['requestTopics']['types'], trainedTopics['requestTopics']['emulators'], trainedTopics['requestTopics']['zap-ids'])
+	def transform_topics_for_hellinger(self, *topics):
+		"""Brings the topic distributions into a format that can be used to compute the
+		Helldinger distance.
 
-# predict a document
-def predict(settings, model, bow, learnedTopics, useOlda=False, incrementallyLearnOldaModel=False):
-	"""Takes a bag of words and computes Hellinger distances between the given bag of words
-	and each document in the corpus.
+		Args:
+			*topics (dict): The topic distributions which should be converted.
 
-	Args:
-		settings (dict): The settings object for all kinds of parameters.
-		model (numpy.ndarray): The LDA model which should be used for prediction.
-		bow (dict): The bag of words for which the prediction should be made.
-		learnedTopics (dict): The probability distributions of the learned topics.
-		useOlda (bool, optional): Indicates whether to use OLDA (True) or FIGS (false). Defaults to False.
-		incrementallyLearnOldaModel (bool, optional): Indicates whether the OLDA model should be learned
-		incrementally, i.e., if the model should be updated in each prediction step. Defaults to False.
+		Returns:
+			(dict): A dictionary containing the probability distributions for each topic
+			in a format usable with gensim.hellinger.
+		"""
 
-	Returns:
-		(array of [str, float]): An array containing the class and the corresponding Hellinger distance for each
-		class.
-	"""
+		# extract known distributions of types and emulators in a format that can be used with gensim.hellinger
+		result = {}
+		for topic in topics:
+			for dist in topic.keys():
+				result[dist] = []
+				for tid,prob in enumerate(topic[dist], start=0):
+					result[dist].append([tid,prob])
 
-	if useOlda: # update model via OLDA
-		model.update([bow])
-	
-	predictedTopics = model.get_document_topics(bow, minimum_probability=settings['lda']['min_probability'], minimum_phi_value=settings['lda']['min_phi_value'], per_word_topics=False)
+		return result
 
-	# compare predictions to all known distributions of types and emulators
-	hds = []
-	for distType,distValues in learnedTopics.items():
-		hds.append([distType, gensim.matutils.hellinger(predictedTopics, distValues)])
+	def get_best_topics(self, bow):
+		
+		predicted_dist = self.model.get_document_topics(
+			bow,
+			minimum_probability=0.001,
+			minimum_phi_value=0.001,
+			per_word_topics=False
+		)
 
-	#  sort in a way, such that most similar label is first
-	hds.sort(key=lambda t: t[1])
+		# compare predictions to all known distributions of types and emulators
+		hellinger_distances = []
+		for dist_type,dist_values in self.trained_dists.items():
+			hellinger_distances.append([dist_type, gensim.matutils.hellinger(predicted_dist, dist_values)])
 
-	if useOlda and not incrementallyLearnOldaModel: # reload model for next try
-		model = gensim.models.ldamodel.LdaModel.load( settings['output']['dir'] + 'temp/' + settings['output']['name'] + '.ldamodel' )
+		#  sort in a way, such that most similar label is first
+		hellinger_distances.sort(key=lambda t: t[1])
 
-	return hds
+		return hellinger_distances
 
-def eval_corpus(settings, model, corpus, learnedTopics):
-	"""Evaluates a given LDA model on a given corpus by computing the predictions of the
-	model and comparing them with the real outcomes.
+	def predict(self, request_data):
+		document = getTextFromRequest(request_data.create_dict())
+		bow = self.dict.doc2bow( filter(lambda t: len(t.strip()) > 0, document.split(' ') ) )
 
-	Args:
-		settings (dict): The settings object for all kinds of parameters.
-		model (numpy.ndarray): The LDA model which should be used for prediction (testing).
-		corpus (array of dict): The bag of words corpus to use for testing.
-		learnedTopics (dict): The probability distributions of the learned topics.
-
-	Returns:
-		(dict): A dictionary containing the evaluation of the model (true positives, false
-		positives, true negatives, false negatives, precision, recall and the predictions
-		made by the model).
-	"""
-
-	# run and log predictions
-	truePositives, falsePositives, falseNegatives, trueNegatives = 0, 0, 0, 0
-	predictions = []
-
-	overall_time = 0
-
-	for d in corpus:
-		predict_start = time.time_ns()
-		predicted = predict(settings, model, d['bow'], learnedTopics, settings['predict']['use_olda'], settings['predict']['incrementally_learn_olda_model'])
-		overall_time += time.time_ns() - predict_start
+		predicted = self.get_best_topics(bow)
 
 		# the best prediction is the one with the lowest hellinger distance
 		# 	but if "only zap id is attack", we learn on ZAP-files attacks (id != -1) and non attacks (id == -1) as "attack" so we ignore the prediction "attack"
 		#	and use only ids and emulators
-		if predicted[0][0] == 'attack' and settings['predict']['only_zap-id_is_attack']:
+		if predicted[0][0] == 'attack' and not LDAPredictor.BLOCK_CRAWLING:
 			best_predicted = predicted[1][0]
 		else:
 			best_predicted = predicted[0][0]
 
-		if settings['predict']['only_zap-id_is_attack']: # any != -1 in a window will classify window as attack
-			isAttackBaseline = False
-			for zap_id in d['zap-id'].split(' '):
-				isAttackBaseline |= zap_id != '-1'
-		else:
-			isAttackBaseline = d['type'] == 'attack'
-		isAttackAssumption = best_predicted != 'benign' and best_predicted != 'none' and best_predicted != '-1'
+		is_attack = best_predicted != 'benign' and best_predicted != 'none' and best_predicted != '-1'
 
-		predictions.append({
-			"corpus" : d['corpus'],
-			"type" : d['type'],
-			"emulator" : d['emulator'],
-			"zap-id" : d['zap-id'],
-			"prediction" : best_predicted,
-			"predictions" : predicted[:5]
-		})
-
-		if isAttackBaseline and isAttackAssumption:
-			truePositives += 1
-		elif not isAttackBaseline and isAttackAssumption:
-			falsePositives += 1
-		elif isAttackBaseline and not isAttackAssumption:
-			falseNegatives += 1
-		elif not isAttackBaseline and not isAttackAssumption:
-			trueNegatives += 1
-
-	print("Prediction Only Seconds:", overall_time / 1000000000 )
-
-	return {
-		'truePositives' : truePositives,
-		'falsePositives' : falsePositives,
-		'falseNegatives' : falseNegatives,
-		'trueNegatives' : trueNegatives,
-		'precision' : -1 if truePositives + falsePositives == 0 else truePositives / (truePositives + falsePositives),
-		'recall' : -1 if truePositives + falsePositives == 0 else truePositives / (truePositives + falseNegatives),
-		'predictions' : predictions
-	}
-
-def main(settings):
-	corpus, model, dict, learnedTopics = load_model(settings)
-
-	# load documents and build bow for test set
-	test_corpus = json.load(open(settings['output']['dir'] + 'processed/' + settings['output']['name'] + '_testset.json', 'r'))
-	test_bow = build_bow_dict(dict, test_corpus, updateDictionary=False)
-
-	report = eval_corpus(settings, model, test_bow, learnedTopics)
-
-	f = open(settings['output']['dir'] + 'temp/' + settings['output']['name'] + '_prediction.json', "w+")
-	f.write(json.dumps(report, indent=4, sort_keys=False))
-	f.close()
+		return is_attack, predicted[:5]
+		
+		

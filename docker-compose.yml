@@ -5,9 +5,12 @@ services:
     restart: unless-stopped
     image: casestudyintrusiondetection/protective_reverse_proxy:development
     container_name: protection_proxy
-    #volumes:
-    #  - "./my-ssl.key:/etc/ssl/private/self_sslkey.pem:ro"
-    #  - "./my-ssl.pem:/etc/ssl/certs/self_sslcert.pem:ro"
+    volumes:
+    #  - ./my-ssl.key:/etc/ssl/private/self_sslkey.pem:ro
+    #  - ./my-ssl.pem:/etc/ssl/certs/self_sslcert.pem:ro
+      - ./models/dummy:/protection/model/:ro
+    environment: 
+      - BLOCK_CRAWLING=true
     ports:
       - "80:80"
       - "443:443"
