@@ -3,6 +3,7 @@ import os, json
 from log import Logging
 
 from src.models.predict_model_lda import LDAPredictor
+from src.models.predict_model_nn import NNPredictor
 
 class RequestChecker():
 
@@ -21,11 +22,14 @@ class RequestChecker():
 		Logging.log("Found Model " + self.models['name'], Logging.LEVEL_INFO)
 
 		self.lda = LDAPredictor(self.models['lda'], RequestChecker.MODELS_DIR)
+		self.nn = NNPredictor(self.models['nn'], RequestChecker.MODELS_DIR)
 
 	def is_save(self, request_data):
 
-		is_attack, lda_predictions = self.lda.predict(request_data)
+		lda_is_attack, lda_predictions = self.lda.predict(request_data)
+		print(lda_is_attack, lda_predictions)
 
-		print(is_attack, lda_predictions)
+		nn_is_attack, nn_predictions = self.nn.predict(request_data)
+		print(nn_is_attack, nn_predictions)
 		
-		return not is_attack 
+		return not lda_is_attack 
