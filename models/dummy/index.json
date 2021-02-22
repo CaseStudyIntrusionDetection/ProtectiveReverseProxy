@@ -6,6 +6,7 @@
 		"distribution" : "lda-trained.json"
 	},
 	"nn" : {
-		"tfmodel" : "nn-dummy.tf"
+		"tfmodel" : "nn-dummy.tf",
+		"labels" : "tf-labels.json"
 	}
 }

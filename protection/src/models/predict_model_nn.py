@@ -16,6 +16,7 @@ class NNPredictor(Predictor):
 
 	def __init__(self, index, models_dir):
 		self.model = tf.keras.models.load_model(models_dir + index["tfmodel"])
+		self.labels = json.load(open(models_dir + index["labels"], 'r'))
 
 	def process(self, data):
 		request = data['request']
@@ -46,15 +47,20 @@ class NNPredictor(Predictor):
 		data = request_data.create_dict()
 		processed_data = self.process(data)
 
-		dist = self.model.predict(self.create_tf_dataset(processed_data))
-		if dist.shape[1] == 2: # binary classification
-			is_attack = bool(tf.argmax(dist, axis=1) == 0)
-			predictions = [['attack', 1-dist[0][0]], ['benign', 1-dist[0][1]]]
-		else:
-			is_attack = False
-			predictions = [['dummy', 0.5]]
+		predicted = self.model.predict(self.create_tf_dataset(processed_data))
+		
+		predictions = []
+		for prob, label in zip(predicted[0], self.labels):
+			predictions.append([label, 1-prob])
 
 		#  sort in a way, such that most probable label (=small value) is first 
 		predictions.sort(key=lambda t: t[1])
+		best_predicted = predictions[0][0]
+		
+		# labels:
+		# 	- ZAP vs. Selenium: "zap", "selenium"
+		# 	- ZAP-ID:  "with zap-id", "no zap id"
+		# 	- Attack-Type: ZAP-ID for attack, "???" -- TODO
+		is_attack = best_predicted != 'selenium' and best_predicted != 'no zap id' and best_predicted != '????'
 
 		return is_attack, predictions[:5]
