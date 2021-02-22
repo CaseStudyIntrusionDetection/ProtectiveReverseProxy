@@ -59,8 +59,8 @@ class NNPredictor(Predictor):
 		
 		# labels:
 		# 	- ZAP vs. Selenium: "zap", "selenium"
-		# 	- ZAP-ID:  "with zap-id", "no zap id"
-		# 	- Attack-Type: ZAP-ID for attack, "???" -- TODO
-		is_attack = best_predicted != 'selenium' and best_predicted != 'no zap id' and best_predicted != '????'
+		# 	- ZAP-ID: "with zap-id","without zap-id", 
+		# 	- Attack-Type: ZAP-ID for attack, "no zap id"
+		is_attack = best_predicted != 'selenium' and best_predicted != 'no zap id' and best_predicted != 'without zap-id'
 
 		return is_attack, predictions[:5]
