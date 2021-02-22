@@ -29,7 +29,7 @@ class RequestChecker():
 		lda_is_attack, lda_predictions = self.lda.predict(request_data)
 		print(lda_is_attack, lda_predictions)
 
-		#nn_is_attack, nn_predictions = self.nn.predict(request_data)
-		#print(nn_is_attack, nn_predictions)
+		nn_is_attack, nn_predictions = self.nn.predict(request_data)
+		print(nn_is_attack, nn_predictions)
 		
-		return not lda_is_attack 
+		return not lda_is_attack and not nn_is_attack

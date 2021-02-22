@@ -3,8 +3,9 @@ import json
 import time, os
 
 from src.data.make_datasets_lda import get_text_from_request
+from src.models.predict_model import Predictor
 
-class LDAPredictor():
+class LDAPredictor(Predictor):
 
 	BLOCK_CRAWLING = os.environ.get("BLOCK_CRAWLING") == "true"
 	CLEANUP_WINDOWS = 2000
