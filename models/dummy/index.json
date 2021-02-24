@@ -5,8 +5,16 @@
 		"dictionary" : "lda.dict",
 		"distribution" : "lda-trained.json"
 	},
-	"nn" : {
-		"tfmodel" : "nn-dummy.tf",
-		"labels" : "tf-labels.json"
+	"nn-crawl" : {
+		"tfmodel" : "nn-crawl.tf",
+		"labels" : "nn-crawl.json"
+	},
+	"nn-attack" : {
+		"tfmodel" : "nn-attack.tf",
+		"labels" : "nn-attack.json"
+	},
+	"nn-types" : {
+		"tfmodel" : "nn-types.tf",
+		"labels" : "nn-types.json"
 	}
 }

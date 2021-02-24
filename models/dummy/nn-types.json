@@ -1,0 +1,12 @@
+[
+	"Cross Site Scripting (Persistent) - Prime",
+	"Cross Site Scripting (Reflected)",
+	"External Redirect",
+	"Path Traversal",
+	"Remote File Inclusion",
+	"Remote OS Command Injection",
+	"SQL Injection",
+	"Server Side Code Injection",
+	"Server Side Include",
+	"no zap id"
+]
