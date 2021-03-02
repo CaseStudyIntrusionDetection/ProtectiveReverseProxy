@@ -6,6 +6,7 @@ __pycache__/
 ./my-ssl.key
 ./my-ssl.pem
 .DS_Store
+/models/RealModels/
 
 # C extensions
 *.so

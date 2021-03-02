@@ -37,5 +37,7 @@ class RequestChecker():
 
 		nn_is_attack, nn_predictions = self.nn.predict(request_data)
 		print(nn_is_attack, nn_predictions)
+
+		Logging.log( json.dumps( { 'nn' : (nn_is_attack, nn_predictions), 'lda' : (lda_is_attack, lda_predictions)}) , Logging.LEVEL_ERROR )
 		
-		return not lda_is_attack and not nn_is_attack
+		return not lda_is_attack or not nn_is_attack

@@ -8,7 +8,8 @@ services:
     volumes:
       - ./proxy/:/proxy/
       - ./protection/:/protection/
-      - ./models/dummy:/protection/model/:ro
+      #- ./models/dummy:/protection/model/:ro
+      - ./models/RealModels:/protection/model/:ro
     environment: 
       - BLOCK_CRAWLING=true
     ports:

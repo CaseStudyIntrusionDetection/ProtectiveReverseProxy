@@ -8,7 +8,8 @@ services:
     volumes:
     #  - ./my-ssl.key:/etc/ssl/private/self_sslkey.pem:ro
     #  - ./my-ssl.pem:/etc/ssl/certs/self_sslcert.pem:ro
-      - ./models/dummy:/protection/model/:ro
+    #  - ./models/dummy:/protection/model/:ro
+      - ./models/RealModels:/protection/model/:ro
     environment: 
       - BLOCK_CRAWLING=true
     ports:
