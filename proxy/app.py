@@ -1,3 +1,12 @@
+'''
+import os
+os.environ['BLOCK_CRAWLING'] = 'false'
+os.environ['BLOCK_TYPES'] = '' 
+os.environ['ALLOW_TYPES'] = '' 
+os.environ['APPROACH_USE'] = 'lda,nn' 
+os.environ['APPROACH_CONNECTOR'] = 'and'
+'''
+
 import random, string
 
 from flask import Flask, request, make_response, render_template, session

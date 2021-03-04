@@ -21,7 +21,7 @@ class RequestChecker():
 			Logging.log("Invalid Model Index!", Logging.LEVEL_ERROR)
 			exit()
 
-		Logging.log("Found Model " + self.models['name'], Logging.LEVEL_INFO)
+		Logging.log("Found Model " + self.models['name'])
 
 		# load default 2 class models
 		self.lda = LDAPredictor(self.models['lda'], RequestChecker.MODELS_DIR)
@@ -33,17 +33,35 @@ class RequestChecker():
 		# load models to get type
 		self.type_handling = TypeHandler()
 		if self.type_handling.is_active():
+			Logging.log("TypeHandler active")
 			self.nn_types = NNPredictor(self.models['nn-types'], RequestChecker.MODELS_DIR)
 
 		# connector to use for models
+		# 	or => one model classifies as safe
+		#	and => both models classify as safe
 		if "APPROACH_CONNECTOR" in os.environ:
 			self.connector = "and" if os.environ.get("APPROACH_CONNECTOR") == "and" else "or" 
+		else:
+			self.connector = "or"
+		Logging.log('Using connector "' + self.connector + '"')
+
+		# model to use 
+		if "APPROACH_USE" in os.environ:
+			self.use_model = os.environ.get("APPROACH_USE") if os.environ.get("APPROACH_USE") in ['lda', 'nn'] else "lda,nn" 
+		else:
+			self.use_model = "lda,nn"
+		Logging.log('Using model(s) "' + self.use_model + '"')
 
 	def model_connector(self, lda_bool, nn_bool):
-		if self.connector == "and":
-			return lda_bool and nn_bool
+		if self.use_model == "lda" :
+			return lda_bool
+		elif self.use_model == "nn":
+			return nn_bool
 		else:
-			return lda_bool or nn_bool
+			if self.connector == "and":
+				return lda_bool and nn_bool
+			else:
+				return lda_bool or nn_bool
 
 	def is_save(self, request_data):
 

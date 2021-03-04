@@ -11,10 +11,11 @@ services:
       #- ./models/dummy:/protection/model/:ro
       - ./models/RealModels:/protection/model/:ro
     environment: 
-      - BLOCK_CRAWLING=true # false, true
-      - BLOCK_TYPES=sql # sql,xss,tampering,execution,disclosure,overflows,encryption,cve,redirect
-      - ALLOW_TYPES=xss # sql,xss,tampering,execution,disclosure,overflows,encryption,cve,redirect
-      - APPROACH_CONNECTOR=and # and,or
+      - BLOCK_CRAWLING=true # 'false', 'true'
+      - BLOCK_TYPES= # one or multiple separated by ',' of: sql,xss,tampering,execution,disclosure,overflows,encryption,cve,redirect
+      - ALLOW_TYPES= # one or multiple separated by ',' of:  sql,xss,tampering,execution,disclosure,overflows,encryption,cve,redirect
+      - APPROACH_USE=lda,nn # 'lda', 'nn' or 'lda,nn' 
+      - APPROACH_CONNECTOR=or # 'and', 'or'
     ports:
       - "80:80"
       - "443:443"

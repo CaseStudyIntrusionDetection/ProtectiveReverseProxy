@@ -7,6 +7,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 import pandas, numpy
 numpy.warnings.filterwarnings("ignore")
+tf.get_logger().setLevel('ERROR')
 
 from src.transformation.HTTPTransformer import HTTPTransformer
 from src.transformation.HTTPHeaders import transform_header_dict, HTTP_RELEVANT_HEADERS
