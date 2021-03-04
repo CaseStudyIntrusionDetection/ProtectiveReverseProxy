@@ -1,7 +1,7 @@
 import os, json
 
 from log import Logging
-from types import TypeHandler
+from attack_types import TypeHandler
 
 from src.models.predict_model_lda import LDAPredictor
 from src.models.predict_model_nn import NNPredictor

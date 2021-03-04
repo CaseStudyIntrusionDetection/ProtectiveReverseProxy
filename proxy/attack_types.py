@@ -21,13 +21,13 @@ class TypeHandler():
 			"Anti-CSRF Tokens Check", "20012",
 			"xss"
 		],
-		"tampering" : {
+		"tampering" : [
 			"Parameter Tampering", "40008",
 			"Cookie Slack Detector", "90027"
 			"CRLF Injection", "40003",
 			"User Agent Fuzzer", "10104",
 			"crlf"
-		}
+		],
 		"execution" : [
 			"Remote Code Execution - Shell Shock", "10048",
 			"Server Side Code Injection", "90019",
