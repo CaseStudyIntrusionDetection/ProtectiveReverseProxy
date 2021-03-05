@@ -16,6 +16,15 @@ services:
       - ALLOW_TYPES= # one or multiple separated by ',' of:  sql,xss,tampering,execution,disclosure,overflows,encryption,cve,redirect
       - APPROACH_USE=lda,nn # 'lda', 'nn' or 'lda,nn' 
       - APPROACH_CONNECTOR=or # 'and', 'or'
+      - MAIL_HOST= # hostname of a mailserver (smtp)
+      - MAIL_PORT=587 # START TLS port of the server
+      - MAIL_USERNAME= # username to access the server
+      - MAIL_PASSWORD= # passwort to access server
+      - MAIL_FROM= # sender of the emails
+      - MAIL_TO= # receiver of the emails
+      - SEND_DAILY_REPORT=true # true,false
+      - SEND_EMERGENCY=true # true,false
+      - ALLOW_AFTER_CAPTCHA=true
     ports:
       - "80:80"
       - "443:443"

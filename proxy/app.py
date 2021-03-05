@@ -1,10 +1,11 @@
-'''
 import os
+'''
 os.environ['BLOCK_CRAWLING'] = 'false'
 os.environ['BLOCK_TYPES'] = '' 
 os.environ['ALLOW_TYPES'] = '' 
 os.environ['APPROACH_USE'] = 'lda,nn' 
-os.environ['APPROACH_CONNECTOR'] = 'and'
+os.environ['APPROACH_CONNECTOR'] = 'or'
+os.environ['ALLOW_AFTER_CAPTCHA'] = 'true'
 '''
 
 import random, string
@@ -14,6 +15,7 @@ from werkzeug.routing import Rule
 
 from request_data import RequestData
 from request_check import RequestChecker
+from captcha_handler import Captcha
 
 app = Flask(__name__)
 
@@ -22,6 +24,10 @@ app.config['SESSION_COOKIE_NAME'] = "protection_session"
 
 checker = RequestChecker()
 connection_id = 0
+
+use_captcha = "ALLOW_AFTER_CAPTCHA" in os.environ and os.environ.get("ALLOW_AFTER_CAPTCHA") == "true"
+if use_captcha:
+	captcha = Captcha()
 
 @app.errorhandler(404)
 def check_request(e):
@@ -41,6 +47,9 @@ def check_request(e):
 		return res
 	else:
 		# display error template
-		return render_template("blocked.html")
+		if use_captcha:
+			return captcha.handle()
+		else:
+			return render_template("blocked.html")
 
 

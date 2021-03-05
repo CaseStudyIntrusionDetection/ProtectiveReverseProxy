@@ -24,6 +24,7 @@ services:
       - MAIL_TO= # receiver of the emails
       - SEND_DAILY_REPORT=true # true,false
       - SEND_EMERGENCY=true # true,false
+      - ALLOW_AFTER_CAPTCHA=true # true,false
     ports:
       - "80:80"
       - "443:443"

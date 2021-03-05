@@ -4,7 +4,7 @@ ENV PRP_VERSION=0.0.0
 
 # install packages for proxy
 RUN apt-get update && apt-get install -y nginx supervisor \
-	&& pip3.8 install flask flup \
+	&& pip3.8 install flask flup captcha \
 	&& mkdir /proxy/ && chown www-data:www-data /proxy/ \
 	&& mkdir /protection/ && chown www-data:www-data /protection/ 
 
