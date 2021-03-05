@@ -22,6 +22,8 @@ services:
       - MAIL_PASSWORD= # passwort to access server
       - MAIL_FROM= # sender of the emails
       - MAIL_TO= # receiver of the emails
+      - SEND_DAILY_REPORT=true # true,false
+      - SEND_EMERGENCY=true # true,false
     ports:
       - "80:80"
       - "443:443"

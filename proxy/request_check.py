@@ -2,6 +2,7 @@ import os, json
 
 from log import Logging
 from attack_types import TypeHandler
+from mail_wrapper import Notifications
 
 from src.models.predict_model_lda import LDAPredictor
 from src.models.predict_model_nn import NNPredictor
@@ -52,6 +53,10 @@ class RequestChecker():
 			self.use_model = "lda,nn"
 		Logging.log('Using model(s) "' + self.use_model + '"')
 
+		# create a notification (=mail) object
+		if Notifications.is_active():
+			self.notifications = Notifications()
+
 	def model_connector(self, lda_bool, nn_bool):
 		if self.use_model == "lda" :
 			return lda_bool
@@ -64,6 +69,7 @@ class RequestChecker():
 				return lda_bool or nn_bool
 
 	def is_save(self, request_data):
+		is_save = None
 
 		# two class prediction
 		lda_is_attack, lda_types = self.lda.predict(request_data)
@@ -80,7 +86,8 @@ class RequestChecker():
 					nn_type[0] not in self.type_handling.block_types
 				)
 				if not no_block:
-					return False
+					is_save = False
+					break
 
 				# check allowed types
 				direct_allow = self.model_connector(
@@ -88,7 +95,23 @@ class RequestChecker():
 					nn_type[0] in self.type_handling.allow_types
 				)
 				if direct_allow:
-					return True
+					is_save = True
+					break
+
+		if is_save == None:
+			# default handling
+			is_save = self.model_connector( not lda_is_attack, not nn_is_attack)
+
+		if Notifications.is_active():
+			if not is_save:
+				self.notifications.log_attack(
+					request_data.connection_id,
+					lda_is_attack, nn_is_attack,
+					lda_types, nn_types if self.type_handling.is_active() else []
+				)
+			self.notifications.send_daily_report()
+
+		return is_save
+
 		
-		# default handling
-		return self.model_connector( not lda_is_attack, not nn_is_attack)
+		

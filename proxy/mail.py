@@ -27,7 +27,7 @@ class Mailer():
 			msg['To'] = self.to
 			msg['Date'] = formatdate()
 			msg['Subject'] = "[PRP] " + (subject if len(subject) > 0 else "Notification")
-			msg.attach(MIMEText(text))
+			msg.attach(MIMEText(text, _subtype='html', _charset='utf-8'))
 
 			client = smtplib.SMTP(host=self.server, port=self.port)
 			if debug:
