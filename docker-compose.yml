@@ -6,10 +6,11 @@ services:
     image: casestudyintrusiondetection/protective_reverse_proxy:development
     container_name: protection_proxy
     volumes:
-    #  - ./my-ssl.key:/etc/ssl/private/self_sslkey.pem:ro
-    #  - ./my-ssl.pem:/etc/ssl/certs/self_sslcert.pem:ro
-    #  - ./models/dummy:/protection/model/:ro
-      - ./models/RealModels:/protection/model/:ro
+      #- ./my-ssl.key:/etc/ssl/private/self_sslkey.pem:ro
+      #- ./my-ssl.pem:/etc/ssl/certs/self_sslcert.pem:ro
+      - ./models/dummy:/protection/model/:ro
+      #- ./models/RealModels:/protection/model/:ro
+      - ./proxy/logs:/proxy/logs
     environment: 
       - BLOCK_CRAWLING=true # 'false', 'true'
       - BLOCK_TYPES= # one or multiple separated by ',' of: sql,xss,tampering,execution,disclosure,overflows,encryption,cve,redirect
@@ -25,6 +26,7 @@ services:
       - SEND_DAILY_REPORT=true # true,false
       - SEND_EMERGENCY=true # true,false
       - ALLOW_AFTER_CAPTCHA=true # true,false
+      - LOG_REQUESTS=all # all,attack,none
     ports:
       - "80:80"
       - "443:443"

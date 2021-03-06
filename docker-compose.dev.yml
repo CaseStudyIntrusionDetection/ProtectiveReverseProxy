@@ -10,6 +10,7 @@ services:
       - ./protection/:/protection/
       #- ./models/dummy:/protection/model/:ro
       - ./models/RealModels:/protection/model/:ro
+      - ./proxy/logs:/proxy/logs
     environment: 
       - BLOCK_CRAWLING=true # 'false', 'true'
       - BLOCK_TYPES= # one or multiple separated by ',' of: sql,xss,tampering,execution,disclosure,overflows,encryption,cve,redirect
@@ -24,7 +25,8 @@ services:
       - MAIL_TO= # receiver of the emails
       - SEND_DAILY_REPORT=true # true,false
       - SEND_EMERGENCY=true # true,false
-      - ALLOW_AFTER_CAPTCHA=true
+      - ALLOW_AFTER_CAPTCHA=true # true,false
+      - LOG_REQUESTS=all # all,attack,none
     ports:
       - "80:80"
       - "443:443"

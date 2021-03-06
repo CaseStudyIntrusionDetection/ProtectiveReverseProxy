@@ -17,6 +17,7 @@ import nginx
 from request_data import RequestData
 from request_check import RequestChecker
 from captcha_handler import Captcha
+from request_log import RequestLogger
 
 # create flask
 app = Flask(__name__)
@@ -35,6 +36,11 @@ use_captcha = "ALLOW_AFTER_CAPTCHA" in os.environ and os.environ.get("ALLOW_AFTE
 if use_captcha:
 	# create captcha handler
 	captcha = Captcha()
+
+# check if we use request logger
+do_request_logging = "LOG_REQUESTS" in os.environ and os.environ.get("LOG_REQUESTS") in ["all", "attack"]
+if do_request_logging:
+	logger = RequestLogger()
 
 # all request will be routed here by flask
 @app.errorhandler(404)
@@ -55,20 +61,31 @@ def check_request(e):
 	if use_captcha:
 		# authenticated by captcha?
 		if captcha.is_captcha_safe():
-			return nginx.approve()
+			is_safe = None
+			response = nginx.approve()
 		# post values to solve captcha send?
 		elif captcha.is_captcha_post():
-			return captcha.handle()
+			is_safe = None
+			response = captcha.handle()
 		# check request
 		elif checker.is_safe(data):
-			return nginx.approve()
+			is_safe = True
+			response = nginx.approve()
 		# show captcha
 		else:
-			return captcha.handle()
+			is_safe = False
+			response = captcha.handle()
 	else:
 		if checker.is_safe(data):
-			return nginx.approve()
+			is_safe = True
+			response = nginx.approve()
 		else:
-			return nginx.block()
+			is_safe = False
+			response = nginx.block()
 
+	# call logging if active
+	if do_request_logging:
+		logger.log(data, is_safe, captcha.is_captcha_safe() if use_captcha else None)
+
+	return response
 
