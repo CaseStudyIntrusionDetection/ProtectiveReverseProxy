@@ -4,10 +4,20 @@ import hashlib
 import re
 
 class RequestData():
+	"""
+		Represents a request and allows export in the specified data format used
+		by the IDS.
+	"""
 
 	current_id = 0
 
 	def __init__(self, request, connection_id):
+		"""
+			Creates an object representing a request
+			Args:
+				request: Flask request object
+				connection_id: The connection id of client
+		"""
 		self.id = RequestData.current_id
 		RequestData.current_id += 1
 
@@ -31,12 +41,22 @@ class RequestData():
 		self.clear_session_cookie(self.header_dict)
 
 	def print(self):
+		"""
+			Prints the request (as json string)
+		"""
 		print(self.json())
 
 	def json(self):
+		"""
+			Returns the request as json string
+		"""
 		return json.dumps(self.create_dict(), indent=2, sort_keys=False)
 
 	def create_dict(self):
+		"""
+			Returns the request in the specified data format used
+			by the IDS
+		"""
 		return {
 			"id" : self.id,
 			"timestamp" : self.time,

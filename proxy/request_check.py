@@ -8,15 +8,24 @@ from src.models.predict_model_lda import LDAPredictor
 from src.models.predict_model_nn import NNPredictor
 
 class RequestChecker():
+	"""
+		The main class handling the recognition of attacks by NNs and TMs.
+	"""
 
+	# path to the models	
 	MODELS_DIR = "/protection/model/"
 
 	def __init__(self):
+		"""
+			Initializes the object, especially loads the models.
+			Also reads the settings from the env. variables.
+		"""
 		# check models directory and index
 		if not os.path.isdir(RequestChecker.MODELS_DIR) or not os.path.isfile(RequestChecker.MODELS_DIR + "index.json"):
 			Logging.log("Missing Model!", Logging.LEVEL_ERROR)
 			exit()
 		
+		# check index file of model
 		self.models = json.load(open(RequestChecker.MODELS_DIR + "index.json", 'r'))
 		if 'lda' not in self.models or 'name' not in self.models or 'nn-crawl' not in self.models or 'nn-attack' not in self.models  or 'nn-types' not in self.models:
 			Logging.log("Invalid Model Index!", Logging.LEVEL_ERROR)
@@ -58,6 +67,15 @@ class RequestChecker():
 			self.notifications = Notifications()
 
 	def model_connector(self, lda_bool, nn_bool):
+		"""
+			The results of each model may be logically connected by 
+			"and" xor "or". Returns the answer of "is save?" given the results to
+			the same question for LDA and NN.
+
+			Args:
+				lda_bool (bool): assumption by lda for "is save?"
+				nn_bool (bool): assumption by nn for "is save?"
+		"""
 		if self.use_model == "lda" :
 			return lda_bool
 		elif self.use_model == "nn":
@@ -68,13 +86,21 @@ class RequestChecker():
 			else:
 				return lda_bool or nn_bool
 
-	def is_save(self, request_data):
-		is_save = None
+	def is_safe(self, request_data):
+		"""
+			Classifies a request, returns if the given request object can be assumed 
+			safe or unsafe.
+
+			Args:
+				request_data: a request object to classify
+		"""
+		is_safe = None
 
 		# two class prediction
 		lda_is_attack, lda_types = self.lda.predict(request_data)
 		nn_is_attack, _ = self.nn.predict(request_data)
 
+		# block or allow types defined by user => we are also interested in the types, not only "is save?"
 		if self.type_handling.is_active():
 			_, nn_types = self.nn_types.predict(request_data)
 
@@ -86,7 +112,7 @@ class RequestChecker():
 					nn_type[0] not in self.type_handling.block_types
 				)
 				if not no_block:
-					is_save = False
+					is_safe = False
 					break
 
 				# check allowed types
@@ -95,23 +121,26 @@ class RequestChecker():
 					nn_type[0] in self.type_handling.allow_types
 				)
 				if direct_allow:
-					is_save = True
+					is_safe = True
 					break
 
-		if is_save == None:
-			# default handling
-			is_save = self.model_connector( not lda_is_attack, not nn_is_attack)
+		# use default handling, if no result by blocked or allowed types
+		if is_safe == None:
+			is_safe = self.model_connector( not lda_is_attack, not nn_is_attack)
 
+		# send notification if activated and given unsafe request
 		if Notifications.is_active():
-			if not is_save:
+			if not is_safe:
 				self.notifications.log_attack(
 					request_data.connection_id,
 					lda_is_attack, nn_is_attack,
 					lda_types, nn_types if self.type_handling.is_active() else []
 				)
+			
+			# always check if daily report should be sent
 			self.notifications.send_daily_report()
 
-		return is_save
+		return is_safe
 
 		
 		

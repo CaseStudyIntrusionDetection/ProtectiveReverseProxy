@@ -4,16 +4,32 @@ from datetime import date
 from mail import Mailer
 
 class Notifications():
+	"""
+		Class to send notification about attacks  to theadmin
+	"""
 
+	# the system can not keep all events in the memory, therefore it
+	# cleans up the memory from time to time, the following values 
+	# allow to influence the cleaning.
+	#	values kept on cleanup (keeping n newest)
 	CONNECTION_IDS_KEEP_ON_CLEANUP = 100
+	#	starts a cleanup when this limit is reached
 	MAX_CONNECTION_IDS = 200
+	#	number of request logged by connection (id)/ user
 	MAX_REQUESTS_PER_ID = 10
 
 	@staticmethod
 	def is_active():
+		"""
+			Check if MAIL_TO is set in the environment variables, it this is the
+			case, we assume that the users wants to get notifications.
+		"""
 		return "MAIL_TO" in os.environ and len(os.environ.get("MAIL_TO")) > 0
 
 	def __init__(self):
+		"""
+			Initialize mail setup 
+		"""
 		self.mailer = Mailer()
 		self.attacks = {}
 		self.counts = {}
@@ -25,12 +41,24 @@ class Notifications():
 		self.last_reportmail = int(time.time())
 
 	def log_attack(self, connection_id, lda_is_attack, nn_is_attack, lda_types, nn_types = []):
+		"""
+			Logs a detected attack
+			Args:
+				connection_id (int): the connection id of the user
+				lda_is_attack (bool): answer by lda to "is attack?" 
+				nn_is_attack (bool): answer by nn to "is attack?"
+				lda_types (array): most probable attack types by lda; [['type', distance], ...], e.g. [['rfi', 0.2], ['lfi', 0.3], ...]]
+				nn_types (array): most probable attack types by nn; [['type', distance], ...]
+		"""
+		# create a new dict entry for a new suspicious connection id 
 		if connection_id not in self.attacks:
 			self.attacks[connection_id] = []
 
+		# we only save up to a certain amount of request per id
 		if len(self.attacks[connection_id]) >= Notifications.MAX_REQUESTS_PER_ID:
 			self.attacks[connection_id].pop(0)
 		
+		# specify a suspicious entry for a request
 		self.attacks[connection_id].append({
 			'is_attack' : {
 				'lda' : lda_is_attack,
@@ -43,31 +71,52 @@ class Notifications():
 			'time' : int(time.time())
 		})
 
+		# track how many attacks are launched within a day
 		today = int(date.today().strftime("%s"))
 		if today not in self.counts:
 			self.counts[today] = 0
 		self.counts[today] += 1
 
+		# if attack is detected, send an emergency mail(1h interval)
 		self.send_emergency()
+
+		# free dict entries, only save up to a certain amount of connection ids
 		self.keep_memory_free()
 		
 	def format_types(self, types):
+		"""
+			Formats the assumed attack types and their distances for email dispatch.
+			
+			Args:
+				types (list): List of lists containing the attack type and its
+				distance for the most probable attack types: [['type', distance], ...].
+		"""
 		s = []
 		for t,p in types:
 			s.append(t + ' (' + ("%.3f" % p) + ')')
 		return ', '.join(s)
 
 	def keep_memory_free(self):
+		"""
+			Makes sure that the dictionary of connection ids does not get too big
+			by deleting the oldest entries when the maximum size has been reached.
+		"""
 		if len(self.attacks) > Notifications.MAX_CONNECTION_IDS:
 			for cid,_ in sorted(self.attacks.items(), key=lambda l: l['time'], reverse=True)[Notifications.CONNECTION_IDS_KEEP_ON_CLEANUP:]:
 				del self.attacks[cid]
 
 	def send_emergency(self):
+		"""
+			Sends an emergency mail to the admin. In order to avoid spam,
+			emergency emails are sent at most once per hour. The mail
+			contains information about the attackers and the assumed attack types.
+		"""
 		current_time = int(time.time())
 		if self.send_emerg and current_time - self.last_attackmail > 3600:
 			self.last_attackmail = current_time
 			time_range = current_time - 3600
-
+		
+			# setup mail content: Table containing user ID and potential attacks
 			text = '<html><style>table,th,tr,td { border:solid 1px black; border-collapse: collapse; padding: 2px; }</style><table>'
 			text += '<tr><th align="left">User ID</th><th align="left">Is Attack?</th><th align="left">Types (distance)</th></tr>'
 			count = 0
@@ -84,10 +133,15 @@ class Notifications():
 			self.mailer.send(text, "Emergency – "+ str(count) +" attacks in the last hour")
 
 	def send_daily_report(self):
+		"""
+			Sends a daily report to the admin, containing information about
+			the number of attack attempts per day.
+		"""
 		current_time = int(time.time())
 		if self.send_daily and current_time - self.last_reportmail > 86400:
 			self.last_reportmail = current_time
 
+			# setup mail content: Table containing user ID and potential attacks
 			text = '<html><style>table,th,tr,td { border:solid 1px black; border-collapse: collapse; padding: 2px; }</style><table>'
 			text += '<tr><th align="left">Day</th><th align="left">Number of attacks</th></tr>'
 			dellist = []
@@ -105,6 +159,8 @@ class Notifications():
 			self.mailer.send(text, "Daily Report")
 
 
+# Code for testing the email dispatch
+#	will not take care of the limits (e.g. one mail per day or hour!)
 if __name__ == "__main__":
 
 	n = Notifications()

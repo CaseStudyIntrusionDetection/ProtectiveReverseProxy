@@ -12,6 +12,12 @@ class Captcha():
 		self.captcha = ImageCaptcha()
 
 	def generate_captcha(self):
+		"""
+			Generates a random captcha as a base64 encoded image.
+
+			Returns: The base64 encoded image source which can be
+			embedded directly into the html source (string).
+		"""
 		value = ''.join(random.choices(Captcha.CHARS, k=Captcha.LEN))
 		image = self.captcha.generate(value)
 		image = base64.b64encode(image.read()).decode()
@@ -20,6 +26,13 @@ class Captcha():
 		return 'data:image/png;base64,' + image
 
 	def handle(self):
+		"""
+			Handles blocked requests based on the session. Redirects the
+			user to the requested page if the captcha was already solved
+			correctly, otherwise displays a random captcha to be solved.
+
+			Returns the Flask template for the corresponding html page.
+		"""
 		if "favicon.ico" in request.full_path:
 			return render_template("blocked.html")
 

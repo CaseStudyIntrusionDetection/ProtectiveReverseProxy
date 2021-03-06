@@ -6,6 +6,9 @@ from src.data.make_datasets_lda import get_text_from_request
 from src.models.predict_model import Predictor
 
 class LDAPredictor(Predictor):
+	"""
+		Calculates prediction based on lda.
+	"""
 
 	BLOCK_CRAWLING = os.environ.get("BLOCK_CRAWLING") == "true"
 	CLEANUP_WINDOWS = 2000
@@ -68,6 +71,13 @@ class LDAPredictor(Predictor):
 		return result
 
 	def get_best_topics(self, bow):
+		"""
+			Calculate the prediction, by assuming the topic distribution and
+			matching against all known distributions. 
+			Args:
+				bow: a bag of word of the request
+			Returns (array): attack types [['type', distance], ...] sorted by distance
+		"""
 		predicted_dist = self.model.get_document_topics(
 			bow,
 			minimum_probability=0.001,
@@ -119,6 +129,11 @@ class LDAPredictor(Predictor):
 		return is_attack, predicted[:5]
 
 	def keep_memory_free(self):
+		"""
+			Makes sure that the dictionary of known requests and the dictionary of
+			connection ids do not get too big by deleting the oldest entries when
+			the maximum size has been reached.
+		"""
 		if len(self.known_requests) > LDAPredictor.CLEANUP_WINDOWS:
 			for cid,_ in sorted(self.connection_id_last.items(), key=lambda l: l[1], reverse=True)[LDAPredictor.KEEP_ON_CLEANUP:]:
 				del self.known_requests[cid]

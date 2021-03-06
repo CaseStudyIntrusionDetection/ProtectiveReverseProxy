@@ -40,7 +40,7 @@ def check_request(e):
 
 	data = RequestData(request, session['connection-id'])
 
-	if checker.is_save(data):
+	if checker.is_safe(data):
 		# X-Accel Header
 		res = make_response("Request approved!")
 		res.headers['X-Accel-Redirect'] = '@protected'

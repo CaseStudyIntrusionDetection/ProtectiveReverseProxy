@@ -3,6 +3,12 @@ import os
 from log import Logging
 
 class TypeHandler():
+	"""
+		Handles the different attack types a user may be choose by a category.
+
+		Access the blocked or allowed types via the arrays
+		self.block_types and self.allow_types.
+	"""
 
 	all_types = {
 		"sql" : [
@@ -65,6 +71,10 @@ class TypeHandler():
 	}
 
 	def __init__(self):
+		"""
+			Loads the types to block and allow from env. variables. Initialization fails
+			if there are types listed both as blocked and allowed at the same time.
+		"""
 		self.block_types = self.load_types("BLOCK_TYPES")
 		self.allow_types = self.load_types("ALLOW_TYPES")
 
@@ -73,6 +83,13 @@ class TypeHandler():
 			exit()
 
 	def load_types(self, env_key):
+		"""
+			Loads the allowed or blocked types from the env. variable.
+
+			Args:
+				env_key (string): The key ('BLOCK_TYPES' or 'ALLOW_TYPES') which
+				specifies from which environmental variable to read.
+		"""
 		types = []
 		if env_key in os.environ:
 			tl = os.environ.get(env_key)
@@ -83,6 +100,9 @@ class TypeHandler():
 		return types
 
 	def is_active(self):
+		"""
+			Returns whether there are specific types given to be blocked or allowed.
+		"""
 		return len(self.block_types) > 0 or len(self.allow_types) > 0 
 
 		

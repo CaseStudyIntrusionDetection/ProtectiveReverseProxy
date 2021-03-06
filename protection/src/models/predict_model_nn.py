@@ -20,6 +20,11 @@ class NNPredictor(Predictor):
 		self.labels = json.load(open(models_dir + index["labels"], 'r'))
 
 	def process(self, data):
+		"""
+			Transforms the given request into a dictionary usable for the precition in the nn.
+			Args:
+				data (dict): The request in the specified format used by the IDS.
+		"""
 		request = data['request']
 		uri_obj = HTTPTransformer.uri_transformation_wrapper(request['uri'])
 		r = {
@@ -38,6 +43,11 @@ class NNPredictor(Predictor):
 		return {**r, **header_dict}
 
 	def create_tf_dataset(self, processed_data):
+		"""
+			Transform the given data into a dataframe for usage in TensorFlow
+			Args:
+				processed_data (dict): result of self.process()
+		"""
 		dataframe = pandas.DataFrame(processed_data, index=[0])
 		dataframe['bin_label'] = dataframe.apply(lambda row: 'without zap-id' if row['label'] == "no zap id" else 'with zap-id', axis=1)
 		labels = dataframe.pop('bin_label')
