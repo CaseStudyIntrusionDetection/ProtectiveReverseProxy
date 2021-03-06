@@ -1,7 +1,9 @@
 import base64, random, string
 
 from captcha.image import ImageCaptcha
-from flask import session, render_template, request, make_response
+from flask import session, render_template, request
+
+import nginx
 
 class Captcha():
 
@@ -34,7 +36,7 @@ class Captcha():
 			Returns the Flask template for the corresponding html page.
 		"""
 		if "favicon.ico" in request.full_path:
-			return render_template("blocked.html")
+			return nginx.block()
 
 		if ('CAPTCHA_SOLVED' in session and session['CAPTCHA_SOLVED'] ) \
 			or \
@@ -44,11 +46,7 @@ class Captcha():
 			and session['CAPTCHA_VALUE'] == request.form['captcha'] ):
 
 				session['CAPTCHA_SOLVED'] = True
-
-				# X-Accel Header
-				res = make_response("Request approved!")
-				res.headers['X-Accel-Redirect'] = '@protected'
-				return res
+				return nginx.approve()
 		else:
 			image = self.generate_captcha()
 			nonce = ''.join(random.choices(string.ascii_letters, k=50))
