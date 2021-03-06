@@ -27,6 +27,22 @@ class Captcha():
 
 		return 'data:image/png;base64,' + image
 
+	def is_captcha_post(self):
+		"""
+			Determines whether the request to be handled is a post request
+			containing a solution to the captcha.
+			
+			Returns: True if a captcha solving post request was received, else false.
+		"""
+		return 'CAPTCHA_VALUE' in session and 'NONCE_VALUE' in session \
+			and 'captcha' in request.form and 'nonce' in request.form
+	
+	def is_captcha_safe(self):
+		"""
+			Is the current request authenticated by a correctly solved captcha?
+		"""
+		return 'CAPTCHA_SOLVED' in session and session['CAPTCHA_SOLVED']
+
 	def handle(self):
 		"""
 			Handles blocked requests based on the session. Redirects the
@@ -38,10 +54,8 @@ class Captcha():
 		if "favicon.ico" in request.full_path:
 			return nginx.block()
 
-		if ('CAPTCHA_SOLVED' in session and session['CAPTCHA_SOLVED'] ) \
-			or \
-			( 'CAPTCHA_VALUE' in session and 'NONCE_VALUE' in session \
-			and 'captcha' in request.form and 'nonce' in request.form \
+		if self.is_captcha_safe() or \
+			( self.is_captcha_post() \
 			and session['NONCE_VALUE'] == request.form['nonce'] \
 			and session['CAPTCHA_VALUE'] == request.form['captcha'] ):
 

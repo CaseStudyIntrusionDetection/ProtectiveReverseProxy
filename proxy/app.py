@@ -52,12 +52,22 @@ def check_request(e):
 	data = RequestData(request, session['connection-id'])
 
 	# check the request and respond
-	if checker.is_safe(data):
-		return nginx.approve()
-	else:
-		# display error template or captcha
-		if use_captcha:
+	if use_captcha:
+		# authenticated by captcha?
+		if captcha.is_captcha_safe():
+			return nginx.approve()
+		# post values to solve captcha send?
+		elif captcha.is_captcha_post():
 			return captcha.handle()
+		# check request
+		elif checker.is_safe(data):
+			return nginx.approve()
+		# show captcha
+		else:
+			return captcha.handle()
+	else:
+		if checker.is_safe(data):
+			return nginx.approve()
 		else:
 			return nginx.block()
 

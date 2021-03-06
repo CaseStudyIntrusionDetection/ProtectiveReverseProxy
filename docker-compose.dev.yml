@@ -15,7 +15,7 @@ services:
       - BLOCK_TYPES= # one or multiple separated by ',' of: sql,xss,tampering,execution,disclosure,overflows,encryption,cve,redirect
       - ALLOW_TYPES= # one or multiple separated by ',' of:  sql,xss,tampering,execution,disclosure,overflows,encryption,cve,redirect
       - APPROACH_USE=lda,nn # 'lda', 'nn' or 'lda,nn' 
-      - APPROACH_CONNECTOR=or # 'and', 'or'
+      - APPROACH_CONNECTOR=and # 'and', 'or'
       - MAIL_HOST= # hostname of a mailserver (smtp)
       - MAIL_PORT=587 # START TLS port of the server
       - MAIL_USERNAME= # username to access the server
