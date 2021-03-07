@@ -22,8 +22,8 @@ class RequestChecker():
 		"""
 		# check models directory and index
 		if not os.path.isdir(RequestChecker.MODELS_DIR) or not os.path.isfile(RequestChecker.MODELS_DIR + "index.json"):
-			Logging.log("Missing Model!", Logging.LEVEL_ERROR)
-			exit()
+			Logging.log("Using dummy model!", Logging.LEVEL_WARN)
+			os.system("cp -R /dummy-model/ " + RequestChecker.MODELS_DIR)
 		
 		# check index file of model
 		self.models = json.load(open(RequestChecker.MODELS_DIR + "index.json", 'r'))

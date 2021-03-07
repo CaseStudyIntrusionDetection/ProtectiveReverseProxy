@@ -15,6 +15,7 @@ RUN cd /protection/ && pip3.8 install -r requirements.txt && chown -R www-data:w
 # copy code folders
 COPY --chown=www-data:www-data ./proxy/ ./proxy/
 COPY --chown=www-data:www-data ./protection/ ./protection/
+COPY --chown=www-data:www-data ./models/dummy/ ./dummy-model/
 
 # nginx settings and startup
 COPY ./conf/supervisor.conf /etc/supervisor/supervisord.conf 

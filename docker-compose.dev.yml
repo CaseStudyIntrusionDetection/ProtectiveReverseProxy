@@ -8,25 +8,24 @@ services:
     volumes:
       - ./proxy/:/proxy/
       - ./protection/:/protection/
-      #- ./models/dummy:/protection/model/:ro
       - ./models/RealModels:/protection/model/:ro
       - ./proxy/logs:/proxy/logs
     environment: 
-      - BLOCK_CRAWLING=true # 'false', 'true'
+      - BLOCK_CRAWLING=true # true,false
       - BLOCK_TYPES= # one or multiple separated by ',' of: sql,xss,tampering,execution,disclosure,overflows,encryption,cve,redirect
       - ALLOW_TYPES= # one or multiple separated by ',' of:  sql,xss,tampering,execution,disclosure,overflows,encryption,cve,redirect
-      - APPROACH_USE=lda,nn # 'lda', 'nn' or 'lda,nn' 
-      - APPROACH_CONNECTOR=and # 'and', 'or'
+      - APPROACH_USE=lda,nn # lda or nn or lda,nn 
+      - APPROACH_CONNECTOR=or # and,or
       - MAIL_HOST= # hostname of a mailserver (smtp)
       - MAIL_PORT=587 # START TLS port of the server
       - MAIL_USERNAME= # username to access the server
       - MAIL_PASSWORD= # passwort to access server
       - MAIL_FROM= # sender of the emails
       - MAIL_TO= # receiver of the emails
-      - SEND_DAILY_REPORT=true # true,false
-      - SEND_EMERGENCY=true # true,false
-      - ALLOW_AFTER_CAPTCHA=true # true,false
-      - LOG_REQUESTS=all # all,attack,none
+      - SEND_DAILY_REPORT=false # true,false
+      - SEND_EMERGENCY=false # true,false
+      - ALLOW_AFTER_CAPTCHA=false # true,false
+      - LOG_REQUESTS=none # all,attack,none
     ports:
       - "80:80"
       - "443:443"
