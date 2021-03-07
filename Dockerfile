@@ -1,6 +1,6 @@
 FROM python:3.8
 
-ENV PRP_VERSION=1.0.0a
+ENV PRP_VERSION=1.0.0b
 
 # install packages for proxy
 RUN apt-get update && apt-get install -y nginx supervisor \
