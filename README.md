@@ -11,10 +11,10 @@ The Protective Reverse Proxy (PRP) is a Docker container to place in front of a 
 
 ## About
 
-All incoming requests towards the webapplication to protect are intercepted by the PRP and then
+All incoming requests towards the web application to protect are intercepted by the PRP and then
 forwarded to the intrusion detection system (PRP core). Inside, the system uses both neural
 networks and topic models for a classification of the requests. Then, the PRP admits the benign
-requests towards the webapplication to protect and responds with the requested page. In case a
+requests towards the web application to protect and responds with the requested page. In case a
 request is assumed to be an attack, the system blocks it and responds with a dummy html page.
 
 ## Usage
@@ -25,7 +25,7 @@ reachable at `http(s)://localhost`.
 
 ### Installation
 1. The system has to be installed via Docker. Hence, we need a server running Docker. It is recommended to use docker-compose.
-2. Firstly, we need a webapplication to be protected by PRP. It works best if the application also runs in a Docker container.
+2. Firstly, we need a web application to be protected by PRP. It works best if the application also runs in a Docker container.
 	- If the application does not run a Docker container, we have to make the host accessible in the network created by docker-compose.
 	- This can be achieved by using [`extra_hosts`](https://docs.docker.com/compose/compose-file/compose-file-v2/#extra_hosts).
 	- Add the following lines to the service `protection_proxy`
