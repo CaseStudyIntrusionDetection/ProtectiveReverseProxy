@@ -1,4 +1,4 @@
-> **Attention: This is a student's project, not a (fully) functional product.**
+> **Attention: This is a students' project, not a (fully) functional product.**
 
 > *Adding a layer of protection in front of a web application does not guarantee perfect security.
 > Always make sure to secure the main web application using best practices!*
@@ -11,35 +11,33 @@ The Protective Reverse Proxy (PRP) is a Docker container to place in front of a 
 
 ## About
 
-All incoming requests towards the web application to protect are intercepted by the PRP and then
-forwarded to the intrusion detection system (PRP core). Inside, the system uses both neural
-networks and topic models for a classification of the requests. Then, the PRP admits the benign
-requests towards the web application to protect and responds with the requested page. In case a
-request is assumed to be an attack, the system blocks it and responds with a dummy html page.
+All incoming requests towards the web application to protect are intercepted by the PRP and then redirected to the intrusion detection system (PRP core). 
+The PRP system uses both neural networks and topic models to determine whether the request is malicious or benign. 
+Benign requests are admitted and consequently forwarded to the protected web application. Requests classified as attacks are blocked and the system responds with a dummy html page.
 
 ## Usage
-See [Installation &darr;](#installation) for detailed step-by-step instructions. In most cases, it will be enough to 
+
+See [Installation &darr;](#installation) for detailed step-by-step instructions. In most cases, it is enough to 
 simply download the [docker-compose.yml](docker-compose.yml)
-and run `docker-compose up` in the directory. A dummy system (using a example application and a dummy model) will be
-reachable at `http(s)://localhost`.
+and run `docker-compose up` in the directory. A dummy system (using an example application and a dummy model) is reachable at `http(s)://localhost`.
 
 ### Installation
-1. The system has to be installed via Docker. Hence, we need a server running Docker. It is recommended to use docker-compose.
-2. Firstly, we need a web application to be protected by PRP. It works best if the application also runs in a Docker container.
-	- If the application does not run a Docker container, we have to make the host accessible in the network created by docker-compose.
-	- This can be achieved by using [`extra_hosts`](https://docs.docker.com/compose/compose-file/compose-file-v2/#extra_hosts).
-	- Add the following lines to the service `protection_proxy`
+
+1. The system has to be installed via Docker. Hence, you need a server running Docker. It is recommended to use docker-compose.
+2. You need a web application to be protected by PRP. It works best if the application also runs in a Docker container.
+	- If the application does *not* run a Docker container, you have to make the host accessible in the network created by docker-compose. This can be achieved by using [`extra_hosts`](https://docs.docker.com/compose/compose-file/compose-file-v2/#extra_hosts):  
+	Add the following lines to the service `protection_proxy`
 		```yml
 		extra_hosts:
 		  - "system-to-protect:host.docker.internal"
 		```
 	- Make sure to protect the application from direct access, such that it is only accessible via PRP.
-3. Create a custom `docker-compose.yml`, see the example [here](docker-compose.yml).
+3. Create a custom `docker-compose.yml`, see the example [here](docker-compose.yml). Note the following remarks.
 	- `volumes`
 		- You should use SSL to access the application, PRP comes with a dummy certificate
 			which **is insecure**. Please bind-mount a custom certificate to
 			`/etc/ssl/private/self_sslkey.pem` and `/etc/ssl/certs/self_sslcert.pem`.
-		- PRP comes with a default dummy model, this model has a very bad performance. Take a look
+		- PRP comes with a default dummy model for the setup process, not optimized for security. Take a look
 			at the [ModelGeneration](https://github.com/CaseStudyIntrusionDetection/ModelGeneration)
 			repository to generate your own models or contact us for a real model.
 			- A model is a directory containing an `index.json` file. Bind-mount the directory to `/protection/model/` (as currently done with `./models/dummy`).
@@ -59,16 +57,18 @@ reachable at `http(s)://localhost`.
 	- Also take a look at [Special Installation &darr;](#special-installation) and [Troubleshooting &darr;](#troubleshooting). 
 
 #### Special Installation
+
 - Configuring the used NGINX reverse proxy.
 	- The used configuration can be found [here](conf/proxy.conf).
 	- The PRP core will redirect to the location `@protected`.
 	- Bind-Mount a custom file via `./my-proxy.conf:/etc/nginx/sites-enabled/default`.
 - Changing the code itself.
-	- See [DEVELOPMENT &rarr;](DEVELOPMENT.md)		
+	- See [DEVELOPMENT &rarr;](DEVELOPMENT.md)
 
 ### Configuration Options
-All configuration is done via environmental variables, they should be specified in the 
-`docker-compose.yml`.  
+
+All configuration is done via environmental variables which are listed and explained below.
+They should be specified in the `docker-compose.yml`.
 
 - `BLOCK_CRAWLING` (**required**)
 	- `true` or `false` 
@@ -128,10 +128,10 @@ All configuration is done via environmental variables, they should be specified 
 		sent to the server.** 
 
 ### Troubleshooting
-- After configuring the SMTP Email notifications one may send a testmail by 
+
+- After configuring the SMTP Email notifications you can send a test mail by 
 	running `docker exec --user www-data protection_proxy python /proxy/mail.py`.
-	One may run `docker exec --user www-data protection_proxy 
-	python /proxy/mail.py --debug` to get debug output.
+	Run `docker exec --user www-data protection_proxy python /proxy/mail.py --debug` to get debug output.
 - Logs can be found at `/tmp/prp.log` and printed by
 	`docker exec --user www-data protection_proxy tail -n 20 /tmp/prp.log`.
-	Only errors will be logged by default.
+	Only errors are logged by default.
