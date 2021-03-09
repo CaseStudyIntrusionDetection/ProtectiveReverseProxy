@@ -97,12 +97,23 @@ class RequestChecker():
 		is_safe = None
 
 		# two class prediction
-		lda_is_attack, lda_types = self.lda.predict(request_data)
-		nn_is_attack, _ = self.nn.predict(request_data)
+		#	if we get any type of error, the request may be insecure!
+		try:
+			lda_is_attack, lda_types = self.lda.predict(request_data)
+		except:
+			lda_is_attack, lda_types = True, [['attack', 0], ['attack', 0], ['attack', 0], ['attack', 0], ['attack', 0]]
+
+		try:
+			nn_is_attack, _ = self.nn.predict(request_data)
+		except:
+			nn_is_attack = True
 
 		# block or allow types defined by user => we are also interested in the types, not only "is save?"
 		if self.type_handling.is_active():
-			_, nn_types = self.nn_types.predict(request_data)
+			try:
+				_, nn_types = self.nn_types.predict(request_data)
+			except:
+				nn_types = [['99', 0], ['99', 0], ['99', 0], ['99', 0], ['99', 0]]
 
 			for lda_type,nn_type in zip(lda_types,nn_types):
 				

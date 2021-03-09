@@ -47,45 +47,50 @@ if do_request_logging:
 def check_request(e):
 	global connection_id
 
-	# setup the session for this users
-	session.permanent = True
-	# assign a new connection id, if its an unknown user
-	if not 'connection-id' in session:
-		session['connection-id'] = connection_id
-		connection_id += 1
+	try:
+		# setup the session for this users
+		session.permanent = True
+		# assign a new connection id, if its an unknown user
+		if not 'connection-id' in session:
+			session['connection-id'] = connection_id
+			connection_id += 1
 
-	# create the request object
-	data = RequestData(request, session['connection-id'])
+		# create the request object
+		data = RequestData(request, session['connection-id'])
 
-	# check the request and respond
-	if use_captcha:
-		# authenticated by captcha?
-		if captcha.is_captcha_safe():
-			is_safe = None
-			response = nginx.approve()
-		# post values to solve captcha send?
-		elif captcha.is_captcha_post():
-			is_safe = None
-			response = captcha.handle()
-		# check request
-		elif checker.is_safe(data):
-			is_safe = True
-			response = nginx.approve()
-		# show captcha
+		# check the request and respond
+		if use_captcha:
+			# authenticated by captcha?
+			if captcha.is_captcha_safe():
+				is_safe = None
+				response = nginx.approve()
+			# post values to solve captcha send?
+			elif captcha.is_captcha_post():
+				is_safe = None
+				response = captcha.handle()
+			# check request
+			elif checker.is_safe(data):
+				is_safe = True
+				response = nginx.approve()
+			# show captcha
+			else:
+				is_safe = False
+				response = captcha.handle()
 		else:
-			is_safe = False
-			response = captcha.handle()
-	else:
-		if checker.is_safe(data):
-			is_safe = True
-			response = nginx.approve()
-		else:
-			is_safe = False
-			response = nginx.block()
+			if checker.is_safe(data):
+				is_safe = True
+				response = nginx.approve()
+			else:
+				is_safe = False
+				response = nginx.block()
 
-	# call logging if active
-	if do_request_logging:
-		logger.log(data, is_safe, captcha.is_captcha_safe() if use_captcha else None)
+		# call logging if active
+		if do_request_logging:
+			logger.log(data, is_safe, captcha.is_captcha_safe() if use_captcha else None)
 
-	return response
+		return response
+		
+	except:
+		# block everything which caused any type of error
+		return nginx.block()
 
