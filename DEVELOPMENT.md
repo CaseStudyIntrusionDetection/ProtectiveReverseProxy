@@ -27,7 +27,7 @@ do not have to rebuild cause we bind-mounted the changed files.)
 ## Changing other files (than Python source)
 The container will have to be rebuild after each change when a file in `conf`
 was changed. It will crash when there are errors in one of these files.
-Of course changes of the `Dockerfile` will require a rebuild.
+Of course, changes of the `Dockerfile` will require a rebuild.
 
 **Hints**:
 - Use the PRP core log at `/tmp/prp.log`
@@ -36,4 +36,4 @@ Of course changes of the `Dockerfile` will require a rebuild.
 
 ## :wink:
 Please take a look a the currently used practices and styles in the 
-sourcecode before contributing to the project.
+source code before contributing to the project.
